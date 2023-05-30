@@ -77,7 +77,7 @@ const scrapeCodePen = async (url) => {
     return data;
 };
 
-const main = async (codepenProfile) => {
+const scrapeCodePenExec = async (codepenProfile) => {
     try {
         const url = `https://codepen.io/${codepenProfile}/pens/public`;
         const data = await scrapeCodePen(url);
@@ -89,4 +89,4 @@ const main = async (codepenProfile) => {
     }
 };
 
-main('marius4568');
+scrapeCodePenExec('marius4568');
