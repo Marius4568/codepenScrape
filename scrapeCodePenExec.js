@@ -1,3 +1,8 @@
+require('dotenv').config();
+
+const Redis = require('ioredis');
+const sendGrid = require('@sendgrid/mail');
+
 const puppeteer = require('puppeteer-extra');
 const StealthPlugin = require('puppeteer-extra-plugin-stealth');
 
@@ -82,6 +87,32 @@ const scrapeCodePenExec = async (codepenProfile) => {
         const url = `https://codepen.io/${codepenProfile}/pens/public`;
         const data = await scrapeCodePen(url);
         const timeScraped = new Date();
+        
+        // Connect to your Redis server
+        const redis = new Redis({
+            host: process.env.REDIS_HOST,
+            port: process.env.REDIS_PORT
+        });
+
+        // Get the previous total views from Redis
+        const previousTotalViews = await redis.get('totalViews');
+        const previousViews = previousTotalViews ? Number(previousTotalViews) : 0;
+
+        if (data.totalViews > previousViews) {
+            // Send notification
+            sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+            const msg = {
+                to: process.env.YOUR_EMAIL,
+                from: process.env.YOUR_EMAIL,
+                subject: 'You have more views!',
+                text: `You have ${data.totalViews - previousViews} new views.`,
+            };
+            await sendGrid.send(msg);
+        }
+        
+        // Update the total views in Redis
+        await redis.set('totalViews', data.totalViews);
+
         console.log('Data:', data);
         console.log('Scrape Date:', timeScraped.toLocaleString());
     } catch (error) {
