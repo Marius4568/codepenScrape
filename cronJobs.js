@@ -6,7 +6,7 @@ import { executeCodePenScraping } from './scraping.js';
 
 const codepenProfile = process.env.CODEPEN_PROFILE;
 
-cron.schedule('0 * * * *', async () => {
+cron.schedule('1 * * * *', async () => {
   try {
     console.log(`Running a task every hour for ${codepenProfile}`);
     await executeCodePenScraping(codepenProfile);
