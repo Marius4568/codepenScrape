@@ -70,7 +70,9 @@ const extractPageData = async (page) => {
 };
 
 const scrapeCodePenPage = async (url) => {
-    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
+    const browser = await puppeteer.launch({
+        headless: 'new', executablePath: process.env.NODE_ENV === "production" ? process.env.PUPPETEER_EXECUTABLE_PATH : puppeteer.executablePath(),
+    args: ['--no-sandbox', '--disable-setuid-sandbox', "--single-process", '--no-zygote']});
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(2 * 60 * 1000);
     await page.goto(url, { waitUntil: 'networkidle0' });
