@@ -70,7 +70,7 @@ const extractPageData = async (page) => {
 };
 
 const scrapeCodePenPage = async (url) => {
-    const browser = await puppeteer.launch({ headless: 'new' });
+    const browser = await puppeteer.launch({ headless: 'new', args: ['--no-sandbox', '--disable-setuid-sandbox'] });
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(2 * 60 * 1000);
     await page.goto(url, { waitUntil: 'networkidle0' });
