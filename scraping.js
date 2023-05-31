@@ -1,17 +1,37 @@
-require('dotenv').config();
+import { config } from 'dotenv';
+config();
 
-const Redis = require('ioredis');
-const sendGrid = require('@sendgrid/mail');
+import db from './db.js';
+import sendGrid from '@sendgrid/mail';
 
-const puppeteer = require('puppeteer-extra');
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 puppeteer.use(StealthPlugin());
 
-const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const delayTime = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-// Extract data from the current page
-const extractDataFromPage = async (page) => {
+const sendGridNotification = async (totalViews, previousViews) => {
+    sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
+    const emailMessage = {
+        to: process.env.YOUR_EMAIL,
+        from: process.env.YOUR_EMAIL,
+        subject: 'You have more views!',
+        text: `You have ${totalViews - previousViews} new views.`,
+    };
+    await sendGrid.send(emailMessage);
+};
+
+const fetchPreviousTotalViews = async (codepenProfile) => {
+    const [rows] = await db.execute('SELECT totalViews FROM views WHERE codepenProfile = ? ORDER BY scrapeDate DESC LIMIT 1', [codepenProfile]);
+    return rows.length > 0 ? rows[0].totalViews : 0;
+};
+
+const updateTotalViewsInDB = async (codepenProfile, totalViews) => {
+    await db.execute('INSERT INTO views (codepenProfile, totalViews) VALUES (?, ?)', [codepenProfile, totalViews]);
+};
+
+const extractPageData = async (page) => {
     return await page.evaluate(() => {
         // Query all required elements
         const viewsElements = document.querySelectorAll('a[data-stat="views"]');
@@ -49,14 +69,13 @@ const extractDataFromPage = async (page) => {
     });
 };
 
-// Main scraping function
-const scrapeCodePen = async (url) => {
-    const browser = await puppeteer.launch({ headless: "new" });
+const scrapeCodePenPage = async (url) => {
+    const browser = await puppeteer.launch({ headless: 'new' });
     const page = await browser.newPage();
     await page.setDefaultNavigationTimeout(2 * 60 * 1000);
     await page.goto(url, { waitUntil: 'networkidle0' });
 
-    let data = await extractDataFromPage(page);
+    let data = await extractPageData(page);
 
     while (true) {
         const nextButton = await page.$('button[data-direction="next"]');
@@ -64,11 +83,11 @@ const scrapeCodePen = async (url) => {
         if (nextButton) {
             await Promise.all([
                 page.click('button[data-direction="next"]'),
-                delay(2000),
+                delayTime(2000),
                 page.waitForNavigation({ waitUntil: 'networkidle0' }),
             ]);
             console.log('Clicked on next button');
-            const nextPageData = await extractDataFromPage(page);
+            const nextPageData = await extractPageData(page);
             data.pens = [...data.pens, ...nextPageData.pens];
             data.totalViews = data.totalViews += nextPageData.totalViews;
             data.totalLikes = data.totalLikes += nextPageData.totalLikes;
@@ -82,36 +101,18 @@ const scrapeCodePen = async (url) => {
     return data;
 };
 
-const scrapeCodePenExec = async (codepenProfile) => {
+export const executeCodePenScraping = async (codepenProfile) => {
     try {
         const url = `https://codepen.io/${codepenProfile}/pens/public`;
-        const data = await scrapeCodePen(url);
+        const data = await scrapeCodePenPage(url);
         const timeScraped = new Date();
-        
-        // Connect to your Redis server
-        const redis = new Redis({
-            host: process.env.REDIS_HOST,
-            port: process.env.REDIS_PORT
-        });
 
-        // Get the previous total views from Redis
-        const previousTotalViews = await redis.get('totalViews');
-        const previousViews = previousTotalViews ? Number(previousTotalViews) : 0;
+        const previousViews = await fetchPreviousTotalViews(codepenProfile);
+        await updateTotalViewsInDB(codepenProfile, data.totalViews);
 
         if (data.totalViews > previousViews) {
-            // Send notification
-            sendGrid.setApiKey(process.env.SENDGRID_API_KEY);
-            const msg = {
-                to: process.env.YOUR_EMAIL,
-                from: process.env.YOUR_EMAIL,
-                subject: 'You have more views!',
-                text: `You have ${data.totalViews - previousViews} new views.`,
-            };
-            await sendGrid.send(msg);
+            await sendGridNotification(data.totalViews, previousViews);
         }
-        
-        // Update the total views in Redis
-        await redis.set('totalViews', data.totalViews);
 
         console.log('Data:', data);
         console.log('Scrape Date:', timeScraped.toLocaleString());
@@ -119,5 +120,3 @@ const scrapeCodePenExec = async (codepenProfile) => {
         console.error('Error:', error);
     }
 };
-
-scrapeCodePenExec('marius4568');

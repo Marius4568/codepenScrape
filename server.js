@@ -1,9 +1,9 @@
-const express = require('express');
+import express from 'express';
+import { executeCodePenScraping } from './scraping.js';
 const app = express();
-const scrapeCodePenExec = require('./scrapeCodePenExec.js');
 
 app.get('/scrape', async (req, res) => {
-    const data = await scrapeCodePenExec('marius4568');
+    const data = await executeCodePenScraping(process.env.CODEPEN_PROFILE);
     res.json(data);
 });
 
