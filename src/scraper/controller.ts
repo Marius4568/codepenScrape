@@ -10,7 +10,6 @@ export const executeCodePenScraping = async (codepenProfile: string) => {
 
         const previousViews = await fetchPreviousTotalViews(codepenProfile);
         const previousPensDataObj = await fetchPreviousPenViews(codepenProfile);
-        console.log('preeeeev', previousPensDataObj)
         const previousPensData = Object.entries(previousPensDataObj).map(([title, views]) => ({ title, views, likes: 0, comments: 0 }));
 
         await updateTotalViewsInDB(codepenProfile, data.totalViews);
