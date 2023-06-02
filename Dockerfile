@@ -9,4 +9,4 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 RUN npm run build
-CMD ["node", "dist/src/index.js"]  
+CMD ["node", "dist/index.js"]  
