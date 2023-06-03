@@ -2,9 +2,10 @@ import express from 'express';
 import { executeCodePenScraping } from './scraper/controller';
 const app = express();
 
-app.get('/scrape', async (req, res) => {
+app.get('/scrape/:profile?', async (req, res) => { // Optional profile parameter
     try {
-        const data = await executeCodePenScraping(process.env.CODEPEN_PROFILE || 'undefined');
+        const profile = req.params.profile || process.env.CODEPEN_PROFILE || 'undefined';
+        const data = await executeCodePenScraping(profile, false, false);
         res.status(200).json(data);
     } catch (error) {
         console.error('Error in /scrape route:', error);
