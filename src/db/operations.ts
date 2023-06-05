@@ -36,7 +36,14 @@ export const fetchPreviousTotalViews = async (codepenProfile: string) => {
 
 export const updateTotalViewsInDB = async (codepenProfile: string, totalViews: number) => {
     try {
-        await db.execute('INSERT INTO views (codepenProfile, totalViews) VALUES (?, ?)', [codepenProfile, totalViews]);
+        // Fetch existing data from database for the particular profile
+        const [rows] = await db.execute('SELECT totalViews FROM views WHERE codepenProfile = ? ORDER BY scrapeDate DESC LIMIT 1', [codepenProfile]);
+
+        // If existing data is not present or if it is different from the new data
+        if ((rows as RowDataPacket[]).length === 0 || (rows as RowDataPacket[])[0].totalViews !== totalViews) {
+            // Insert new data into database
+            await db.execute('INSERT INTO views (codepenProfile, totalViews) VALUES (?, ?)', [codepenProfile, totalViews]);
+        }
     } catch (error) {
         console.error('Error in updateTotalViewsInDB:', error);
     }
@@ -45,7 +52,19 @@ export const updateTotalViewsInDB = async (codepenProfile: string, totalViews: n
 export const updatePenViewsInDB = async (codepenProfile: string, pensData: Array<penData>) => {
     try {
         for (let pen of pensData) {
-            await db.execute('INSERT INTO penViews (codepenProfile, penTitle, views) VALUES (?, ?, ?)', [codepenProfile, pen.title, pen.views]);
+            // Fetch existing data from database for the particular penTitle
+            const [rows] = await db.execute(`
+                SELECT views
+                FROM penViews
+                WHERE codepenProfile = ? AND penTitle = ?
+                ORDER BY scrapeDate DESC
+                LIMIT 1`, [codepenProfile, pen.title]);
+
+            // If existing data is not present or if it is different from the new data
+            if ((rows as RowDataPacket[]).length === 0 || (rows as RowDataPacket[])[0].views !== pen.views) {
+                // Insert new data into database
+                await db.execute('INSERT INTO penViews (codepenProfile, penTitle, views) VALUES (?, ?, ?)', [codepenProfile, pen.title, pen.views]);
+            }
         }
     } catch (error) {
         console.error('Error in updatePenViewsInDB:', error);
