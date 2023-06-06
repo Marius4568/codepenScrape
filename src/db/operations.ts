@@ -1,72 +1,94 @@
-import db from './db';
-
-import { RowDataPacket } from 'mysql2';
-import {penData} from '../email/operations'
+import { pool } from './db';
+import { penData } from '../email/operations';
 
 export const fetchPreviousPenViews = async (codepenProfile: string) => {
-    try {
-        const [rows] = await db.execute(`
-            SELECT v.penTitle, v.views
-            FROM penViews v
-            INNER JOIN (
-                SELECT penTitle, MAX(scrapeDate) as latestScrapeDate
-                FROM penViews
-                WHERE codepenProfile = ?
-                GROUP BY penTitle
-            ) as subQuery
-            ON v.penTitle = subQuery.penTitle AND v.scrapeDate = subQuery.latestScrapeDate
-            ORDER BY latestScrapeDate DESC`, [codepenProfile]);
-        let previousViewsObj: Record<string, number> = {};
-        (rows as RowDataPacket[]).forEach(row => previousViewsObj[row.penTitle] = row.views);
-        return previousViewsObj;
-    } catch (error) {
-        console.error('Error in fetchPreviousPenViews:', error);
-        return {}; // return an empty object in case of an error
-    }
+  try {
+    const query = `
+      SELECT v.pentitle, v.views
+      FROM penviews v
+      INNER JOIN (
+        SELECT pentitle, MAX(scrapedate) as latestscrapedate
+        FROM penviews
+        WHERE codepenprofile = $1
+        GROUP BY pentitle
+      ) as subQuery
+      ON v.pentitle = subQuery.pentitle AND v.scrapedate = subQuery.latestscrapedate
+      ORDER BY latestscrapedate DESC
+    `;
+    const values = [codepenProfile];
+    const { rows } = await pool.query(query, values);
+    let previousViewsObj: Record<string, number> = {};
+    rows.forEach((row: any) => (previousViewsObj[row.pentitle] = row.views));
+    return previousViewsObj;
+  } catch (error) {
+    console.error('Error in fetchPreviousPenViews:', error);
+    return {}; // return an empty object in case of an error
+  }
 };
 
 export const fetchPreviousTotalViews = async (codepenProfile: string) => {
-    try {
-        const [rows] = await db.execute('SELECT totalViews FROM views WHERE codepenProfile = ? ORDER BY scrapeDate DESC LIMIT 1', [codepenProfile]);
-        return (rows as RowDataPacket[]).length > 0 ? (rows as RowDataPacket[])[0].totalViews : 0;
-    } catch (error) {
-        console.error('Error in fetchPreviousTotalViews:', error);
-    }
+  try {
+    const query = `
+      SELECT totalviews
+      FROM views
+      WHERE codepenprofile = $1
+      ORDER BY scrapedate DESC
+      LIMIT 1
+    `;
+    const values = [codepenProfile];
+    const { rows } = await pool.query(query, values);
+    return rows.length > 0 ? rows[0].totalviews : 0;
+  } catch (error) {
+    console.error('Error in fetchPreviousTotalViews:', error);
+  }
 };
 
 export const updateTotalViewsInDB = async (codepenProfile: string, totalViews: number) => {
-    try {
-        // Fetch existing data from database for the particular profile
-        const [rows] = await db.execute('SELECT totalViews FROM views WHERE codepenProfile = ? ORDER BY scrapeDate DESC LIMIT 1', [codepenProfile]);
+  try {
+    const query = `
+      SELECT totalviews
+      FROM views
+      WHERE codepenprofile = $1
+      ORDER BY scrapedate DESC
+      LIMIT 1
+    `;
+    const values = [codepenProfile];
+    const { rows } = await pool.query(query, values);
 
-        // If existing data is not present or if it is different from the new data
-        if ((rows as RowDataPacket[]).length === 0 || (rows as RowDataPacket[])[0].totalViews !== totalViews) {
-            // Insert new data into database
-            await db.execute('INSERT INTO views (codepenProfile, totalViews) VALUES (?, ?)', [codepenProfile, totalViews]);
-        }
-    } catch (error) {
-        console.error('Error in updateTotalViewsInDB:', error);
+    if (rows.length === 0 || rows[0].totalviews !== totalViews) {
+      const insertQuery = `
+        INSERT INTO views (codepenprofile, totalviews)
+        VALUES ($1, $2)
+      `;
+      await pool.query(insertQuery, [codepenProfile, totalViews]);
     }
+  } catch (error) {
+    console.error('Error in updateTotalViewsInDB:', error);
+  }
 };
 
 export const updatePenViewsInDB = async (codepenProfile: string, pensData: Array<penData>) => {
-    try {
-        for (let pen of pensData) {
-            // Fetch existing data from database for the particular penTitle
-            const [rows] = await db.execute(`
-                SELECT views
-                FROM penViews
-                WHERE codepenProfile = ? AND penTitle = ?
-                ORDER BY scrapeDate DESC
-                LIMIT 1`, [codepenProfile, pen.title]);
+  try {
+    for (let pen of pensData) {
+      const query = `
+        SELECT views
+        FROM penviews
+        WHERE codepenprofile = $1 AND pentitle = $2
+        ORDER BY scrapedate DESC
+        LIMIT 1
+      `;
+      const values = [codepenProfile, pen.title];
+      const { rows } = await pool.query(query, values);
 
-            // If existing data is not present or if it is different from the new data
-            if ((rows as RowDataPacket[]).length === 0 || (rows as RowDataPacket[])[0].views !== pen.views) {
-                // Insert new data into database
-                await db.execute('INSERT INTO penViews (codepenProfile, penTitle, views) VALUES (?, ?, ?)', [codepenProfile, pen.title, pen.views]);
-            }
-        }
-    } catch (error) {
-        console.error('Error in updatePenViewsInDB:', error);
+      if (rows.length === 0 || rows[0].views !== pen.views) {
+        const insertQuery = `
+          INSERT INTO penviews (codepenprofile, pentitle, views)
+          VALUES ($1, $2, $3)
+        `;
+        await pool.query(insertQuery, [codepenProfile, pen.title, pen.views]);
+      }
     }
+  } catch (error) {
+    console.error('Error in updatePenViewsInDB:', error);
+  }
 };
