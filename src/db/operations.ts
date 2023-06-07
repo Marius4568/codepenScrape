@@ -45,33 +45,52 @@ export const fetchPreviousTotalViews = async (codepenProfile: string) => {
 
 export const updateTotalViewsInDB = async (codepenProfile: string, totalViews: number) => {
   try {
-    const query = `
-      SELECT totalviews
+    const selectQuery = `
+      SELECT totalviews, scrapedate
       FROM views
       WHERE codepenprofile = $1
       ORDER BY scrapedate DESC
       LIMIT 1
     `;
-    const values = [codepenProfile];
-    const { rows } = await pool.query(query, values);
+    const selectValues = [codepenProfile];
+    const { rows } = await pool.query(selectQuery, selectValues);
 
-    if (rows.length === 0 || rows[0].totalviews !== totalViews) {
+    if (rows.length > 0) {
+      const currentTotalViews = rows[0].totalviews;
+
+      if (currentTotalViews !== totalViews) {
+        const updateQuery = `
+          UPDATE views
+          SET totalviews = $1, scrapedate = $2
+          WHERE codepenprofile = $3 AND scrapedate = (
+            SELECT MAX(scrapedate) 
+            FROM views 
+            WHERE codepenprofile = $3
+          )
+        `;
+        const updateValues = [totalViews, new Date(), codepenProfile];
+        await pool.query(updateQuery, updateValues);
+      }
+    } else {
       const insertQuery = `
-        INSERT INTO views (codepenprofile, totalviews)
-        VALUES ($1, $2)
+        INSERT INTO views (codepenprofile, totalviews, scrapedate)
+        VALUES ($1, $2, $3)
       `;
-      await pool.query(insertQuery, [codepenProfile, totalViews]);
+      const insertValues = [codepenProfile, totalViews, new Date()];
+      await pool.query(insertQuery, insertValues);
     }
   } catch (error) {
     console.error('Error in updateTotalViewsInDB:', error);
   }
 };
 
+
+
 export const updatePenViewsInDB = async (codepenProfile: string, pensData: Array<penData>) => {
   try {
     for (let pen of pensData) {
       const query = `
-        SELECT views
+        SELECT id, views
         FROM penviews
         WHERE codepenprofile = $1 AND pentitle = $2
         ORDER BY scrapedate DESC
@@ -81,11 +100,22 @@ export const updatePenViewsInDB = async (codepenProfile: string, pensData: Array
       const { rows } = await pool.query(query, values);
 
       if (rows.length === 0 || rows[0].views !== pen.views) {
-        const insertQuery = `
-          INSERT INTO penviews (codepenprofile, pentitle, views)
-          VALUES ($1, $2, $3)
-        `;
-        await pool.query(insertQuery, [codepenProfile, pen.title, pen.views]);
+        if (rows.length > 0) {
+          // Update existing row
+          const updateQuery = `
+            UPDATE penviews
+            SET views = $1
+            WHERE id = $2
+          `;
+          await pool.query(updateQuery, [pen.views, rows[0].id]);
+        } else {
+          // Insert new row
+          const insertQuery = `
+            INSERT INTO penviews (codepenprofile, pentitle, views)
+            VALUES ($1, $2, $3)
+          `;
+          await pool.query(insertQuery, [codepenProfile, pen.title, pen.views]);
+        }
       }
     }
   } catch (error) {
