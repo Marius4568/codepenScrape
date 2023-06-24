@@ -1,0 +1,13 @@
+Project Specification: Codepen Analytics Notifier
+
+Objective: To empower users with knowledge of changes to their Codepen projects, and drive data-informed enhancements to their creations.
+
+Scope: This project will focus on developing a system that:
+
+Extracts Data: Automatically retrieves pen data from a user's Codepen account.
+
+Tracks Changes: Monitors and analyzes changes in the pen data, such as views, comments, and likes, and stores this information in a database.
+
+Communicates Updates: Sends email notifications to users outlining the changes detected.
+
+By doing so, we aim to provide users with insights into their Codepen project's performance and user engagement, promoting informed decision-making and potential improvements.
