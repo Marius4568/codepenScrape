@@ -2,7 +2,7 @@ name: CodePen Scraping
 
 on:
   schedule:
-    - cron: '0 */5 * * *'  # Run every 5 hours
+    - cron: '*/5 * * * *'  # Run every 5 minutes
 
 jobs:
   scrape:
