@@ -1,8 +1,6 @@
-name: CodePen Scraping
-
 on:
   schedule:
-    - cron: '*/5 * * * *'  # Run every 5 minutes
+    - cron: '*/5 * * * *'  # Run every minute
 
 jobs:
   scrape:
@@ -10,12 +8,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3  # Update to version 3
 
       - name: Setup Node.js
-        uses: actions/setup-node@v2
+        uses: actions/setup-node@v4  # Update to version 4
         with:
-          node-version: '16.x'
+          node-version: '16'  # Adjust the Node.js version as needed
 
       - name: Install dependencies
         run: npm install
