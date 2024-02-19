@@ -1,0 +1,24 @@
+name: CodePen Scraping
+
+on:
+  schedule:
+    - cron: '0 */5 * * *'  # Run every 5 hours
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '16.x'
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run scraping
+        run: npm start
