@@ -18,8 +18,10 @@ jobs:
         run: ls       
       - name: Build
         run: npm run build
-      - name: Start
+      - name: change
         run: cd dist
+      - name: list files
+        run: ls 
       - name: run
         run: node index.js    
      
