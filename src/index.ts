@@ -2,7 +2,9 @@ import { config } from 'dotenv';
 import { executeCodePenScraping } from './scraper/controller';
 import './server';
 // import './cronJobs';
-
+console.log(
+  process.env
+)
 config();
 (async () => {
   try {
