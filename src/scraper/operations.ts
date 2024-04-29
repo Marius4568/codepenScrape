@@ -43,7 +43,6 @@ const comments = Array.from(commentElements).map(el => parseInt((el.textContent 
     });
 };
 
-// This function will handle page navigation
 const handlePageNavigation = async (page: Page, data: { pens: penData[]; totalViews: number; totalLikes: number; totalComments: number; }) => {
     const nextButton = await page.$('button[data-direction="next"]');
     if (nextButton) {

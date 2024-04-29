@@ -20,7 +20,7 @@ export const executeCodePenScraping = async (
             await updateTotalViewsInDB(codepenProfile, data.totalViews);
             await updatePenViewsInDB(codepenProfile, data.pens);
         }
-
+           
         if (shouldNotify && data.totalViews > previousViews) {
             await sendGridNotification(data.totalViews, previousViews, data.pens, previousPensData);
         }

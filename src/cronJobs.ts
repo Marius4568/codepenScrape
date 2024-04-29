@@ -7,9 +7,9 @@ import {executeCodePenScraping} from './scraper/controller'
 const codepenProfile = process.env.CODEPEN_PROFILE; 
 
 if (codepenProfile) {
-cron.schedule('0 * * * *', async () => {
+cron.schedule('* * * * *', async () => {
   try {
-    console.log(`Running a task every hour for ${codepenProfile}`);
+    console.log(`Running a task every minute for ${codepenProfile}`);
     await executeCodePenScraping(codepenProfile);
 
   } catch (error) {

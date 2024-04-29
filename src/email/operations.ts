@@ -34,8 +34,13 @@ export const sendGridNotification = async (totalViews: number, previousViews: nu
                    <ul>${penViewsText}</ul>
                    <p>Your total views are now: <strong>${totalViews}</strong></p>`,
         };
-
-        await sendGrid.send(emailMessage);
-        console.log('Sent email!')
+        try {
+            await sendGrid.send(emailMessage);
+            console.log('Sent email!')
+        }
+        catch (err) { 
+            console.log(`Couldn't send the email encountered error: ${err}`)
+        }
+       
     }
 };
