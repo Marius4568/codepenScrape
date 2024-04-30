@@ -3,20 +3,22 @@ on:
   schedule:
     - cron: "*/5 * * * *"
 env:
-      DATABASE_URL: ${{ secrets.DATABASE_URL }}
-      SENDGRID_API_KEY: ${{ secrets.SENDGRID_API_KEY }}
-      SENDER_EMAIL: ${{ secrets.SENDER_EMAIL }}
-      RECEIVER_EMAIL: ${{ secrets.RECEIVER_EMAIL }}
-      CODEPEN_PROFILE: ${{ secrets.CODEPEN_PROFILE }}
-      PORT: ${{ secrets.PORT }}    
+      DATABASE_URL: ${{ vars.DATABASE_URL }}
+      SENDGRID_API_KEY: ${{ vars.SENDGRID_API_KEY }}
+      SENDER_EMAIL: ${{ vars.SENDER_EMAIL }}
+      RECEIVER_EMAIL: ${{ vars.RECEIVER_EMAIL }}
+      CODEPEN_PROFILE: ${{ vars.CODEPEN_PROFILE }}
+      PORT: ${{ vars.PORT }}    
 jobs:
   Run_codepen_scrapper:
     runs-on: ubuntu-latest
     steps:
+      - name: Logs
+        run: "echo ${{ vars.DATABASE_URL }}"
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Setup Node.js
-        uses: actions/setup-node@v3
+        uses: actions/setup-node@v4
         with:
           node-version: '20'
       - name: Install dependencies
