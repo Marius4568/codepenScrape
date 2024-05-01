@@ -14,6 +14,7 @@ config();
   } catch (err) {
     console.error('Error during CodePen scraping:', err);
   } finally {
+    console.log('exiting process')
     process.exit(0);
   }
 })();

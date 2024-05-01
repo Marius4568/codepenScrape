@@ -8,6 +8,7 @@ export const executeCodePenScraping = async (
     shouldNotify: boolean = true
 ) => {
     try {
+        console.log(codepenProfile)
         const url = `https://codepen.io/${codepenProfile}/pens/public`;
         const data = await scrapeCodePenPage(url);
         const timeScraped = new Date();
