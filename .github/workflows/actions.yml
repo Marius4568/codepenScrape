@@ -1,16 +1,10 @@
 name: Scraper
 on:
   schedule:
-    - cron: "*/5 * * * *"
-env:
-      DATABASE_URL: ${{ vars.DATABASE_URL }}
-      SENDGRID_API_KEY: ${{ vars.SENDGRID_API_KEY }}
-      SENDER_EMAIL: ${{ vars.SENDER_EMAIL }}
-      RECEIVER_EMAIL: ${{ vars.RECEIVER_EMAIL }}
-      CODEPEN_PROFILE: ${{ vars.CODEPEN_PROFILE }}
-      PORT: ${{ vars.PORT }}    
+    - cron: "*/5 * * * *"   
 jobs:
   Run_codepen_scrapper:
+    environment: env
     runs-on: ubuntu-latest
     steps:
       - name: Logs
