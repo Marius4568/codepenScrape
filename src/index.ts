@@ -3,7 +3,8 @@ import { executeCodePenScraping } from './scraper/controller';
 import './server';
 // import './cronJobs';
 console.log(
-  process.env
+  process.env,
+  'process.env variables'
 )
 config();
 (async () => {
