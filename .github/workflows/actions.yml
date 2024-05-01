@@ -4,7 +4,6 @@ on:
     - cron: "*/5 * * * *"   
 jobs:
   Run_codepen_scrapper:
-    environment: env
     runs-on: ubuntu-latest
     steps:
       - name: Logs
