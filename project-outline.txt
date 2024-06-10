@@ -10,4 +10,4 @@ Tracks Changes: Monitors and analyzes changes in the pen data, such as views, co
 
 Communicates Updates: Sends email notifications to users outlining the changes detected.
 
-By doing so, we aim to provide users with insights into their Codepen project's performance and user engagement, promoting informed decision-making and potential improvements.
+The aim is to provide users with insights into their Codepen project's performance and user engagement, promoting informed decision-making and potential improvements.

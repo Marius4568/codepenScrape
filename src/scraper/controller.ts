@@ -1,37 +1,60 @@
-import { sendGridNotification } from '../email/operations';
-import { scrapeCodePenPage } from './operations';
-import { fetchPreviousTotalViews, fetchPreviousPenViews, updateTotalViewsInDB, updatePenViewsInDB } from '../db/operations';
+import { sendNewCodePenChangedDataNotification } from '../email/operations';
+import { scrapeUsersCodepensData } from './operations';
+import { fetchUserTotalViews, updateDBDataWithScrapedData, fetchUserCodepens, fetchUserTotalLikes, fetchUserTotalComments } from '../db/operations';
+import Logger from '../logger';
 
-export const executeCodePenScraping = async (
-    codepenProfile: string, 
-    shouldUpdateDB: boolean = true, 
-    shouldNotify: boolean = true
-) => {
+// OPERATIONS
+// 1) Scrape specific codepen profile's data.
+// 2) If needed update total profile views, total views history
+// 3) If needed update codepen info and total codepen views history
+// 4) Send a notification to the user if there are any changes in codepen data
+
+export const performCodePenOperations = async (codepenProfileUsername: string) => {
     try {
-        console.log(codepenProfile)
-        const url = `https://codepen.io/${codepenProfile}/pens/public`;
-        const data = await scrapeCodePenPage(url);
-        const timeScraped = new Date();
+        Logger.info(`Starting CodePen operations for profile: ${codepenProfileUsername}`);
 
-        const previousViews = await fetchPreviousTotalViews(codepenProfile);
-        const previousPensDataObj = await fetchPreviousPenViews(codepenProfile);
-        const previousPensData = Object.entries(previousPensDataObj).map(([title, views]) => ({ title, views, likes: 0, comments: 0 }));
+        const codepensUrl = `https://codepen.io/${codepenProfileUsername}/pens/public`;
+        Logger.info(`Scraping data from URL: ${codepensUrl}`);
+        const codepensScrapeData = await scrapeUsersCodepensData(codepensUrl);
+        Logger.info('Scraped CodePens Data:', codepensScrapeData);
 
-        if (shouldUpdateDB) {
-            await updateTotalViewsInDB(codepenProfile, data.totalViews);
-            await updatePenViewsInDB(codepenProfile, data.pens);
+        const previousTotalViews = await fetchUserTotalViews(codepenProfileUsername) || 0;
+        Logger.info(`Previous Total Views: ${previousTotalViews}`);
+
+        const previousTotalLikes = await fetchUserTotalLikes(codepenProfileUsername) || 0;
+        Logger.info(`Previous Total Likes: ${previousTotalLikes}`);
+
+        const previousTotalComments = await fetchUserTotalComments(codepenProfileUsername) || 0;
+        Logger.info(`Previous Total Comments: ${previousTotalComments}`);
+
+        const previousPensData = await fetchUserCodepens(codepenProfileUsername);
+        Logger.info('Previous Pens Data:', previousPensData);
+
+        const haveReceivedMoreInteractions = codepensScrapeData.total_views > previousTotalViews ||
+            codepensScrapeData.total_likes > previousTotalLikes ||
+            codepensScrapeData.total_comments > previousTotalComments;
+
+        Logger.info(`Have received more interactions: ${haveReceivedMoreInteractions}`);
+
+        if (haveReceivedMoreInteractions) {
+            Logger.info('Updating database with scraped data');
+            await updateDBDataWithScrapedData({ profile_username: codepenProfileUsername }, codepensScrapeData);
+
+            if (previousPensData) {
+                Logger.info('Sending notification for new interactions');
+                await sendNewCodePenChangedDataNotification(
+                    codepensScrapeData.total_views, previousTotalViews,
+                    codepensScrapeData.total_likes, previousTotalLikes,
+                    codepensScrapeData.total_comments, previousTotalComments,
+                    codepensScrapeData.pens, previousPensData
+                );
+            }
         }
-           
-        if (shouldNotify && data.totalViews > previousViews) {
-            await sendGridNotification(data.totalViews, previousViews, data.pens, previousPensData);
-        }
 
-        console.log('Data:', data);
-        console.log('Scrape Date:', timeScraped.toLocaleString());
+        Logger.info('Finished CodePen operations');
+        return codepensScrapeData;
 
-        return data; // return the scraped data
     } catch (error) {
-        console.error('Error:', error);
-        throw error; // re-throw the error so it can be caught in the route handler
+        Logger.error('Error during CodePen operations:', error);
     }
 };
