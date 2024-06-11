@@ -2,7 +2,27 @@ import sendGrid from '@sendgrid/mail';
 import Logger from '../logger';
 import { PenData } from '../types';
 
-export const sendNewCodePenChangedDataNotification = async (totalViews: number, previousTotalViews: number, totalLikes: number, previousLikes: number, totalComments: number, previousTotalComments: number, pensData: PenData[], previousPensData: PenData[]) => {
+interface NotificationData {
+    totalViews: number;
+    previousTotalViews: number;
+    totalLikes: number;
+    previousTotalLikes: number;
+    totalComments: number;
+    previousTotalComments: number;
+    pensData: PenData[];
+    previousPensData: PenData[];
+}
+
+export const sendNewCodePenChangedDataNotification = async ({
+    totalViews,
+    previousTotalViews,
+    totalLikes,
+    previousTotalLikes,
+    totalComments,
+    previousTotalComments,
+    pensData,
+    previousPensData
+}: NotificationData) => {
     if (!process.env.SENDGRID_API_KEY || !process.env.RECEIVER_EMAIL || !process.env.SENDER_EMAIL) {
         throw new Error("SENDGRID_API_KEY, RECEIVER_EMAIL and SENDER_EMAIL must be defined in environment variables");
     }
@@ -10,11 +30,11 @@ export const sendNewCodePenChangedDataNotification = async (totalViews: number, 
 
     Logger.info('Starting notification process');
     Logger.info(`Total Views: ${totalViews}, Previous Total Views: ${previousTotalViews}`);
-    Logger.info(`Total Likes: ${totalLikes}, Previous Total Likes: ${previousLikes}`);
+    Logger.info(`Total Likes: ${totalLikes}, Previous Total Likes: ${previousTotalLikes}`);
     Logger.info(`Total Comments: ${totalComments}, Previous Total Comments: ${previousTotalComments}`);
 
     let penUpdatesText = "";
-
+    console.log(previousPensData, 'paaaaaaaaa', pensData, 'paaaaaaaaa')
     pensData.forEach(pen => {
         Logger.info(`Processing pen: ${pen.title}`);
         const previousPenData = previousPensData.find(prevPen => prevPen.codepen_id === pen.codepen_id);
@@ -38,13 +58,13 @@ export const sendNewCodePenChangedDataNotification = async (totalViews: number, 
         }
     });
 
-    if (penUpdatesText.length > 0) { // If any pen has new views, likes, or comments
+    if (penUpdatesText.length > 0 || previousTotalLikes < totalLikes || previousTotalViews < totalViews || previousTotalComments < totalComments) { // If any pen has new views, likes, or comments
         const emailMessage = {
             to: process.env.RECEIVER_EMAIL,
             from: process.env.SENDER_EMAIL,
             subject: 'You have new interactions on your CodePens!',
-            text: `You have ${totalViews - previousTotalViews} new views, ${totalLikes - previousLikes} new likes, and ${totalComments - previousTotalComments} new comments.\n\nYour pens interactions:\n${penUpdatesText}\nYour total views are now: ${totalViews}, total likes: ${totalLikes}, total comments: ${totalComments}`,
-            html: `<p>You have <strong>${totalViews - previousTotalViews}</strong> new views, <strong>${totalLikes - previousLikes}</strong> new likes, and <strong>${totalComments - previousTotalComments}</strong> new comments.</p>
+            text: `You have ${totalViews - previousTotalViews} new views, ${totalLikes - previousTotalLikes} new likes, and ${totalComments - previousTotalComments} new comments.\n\nYour pens interactions:\n${penUpdatesText}\nYour total views are now: ${totalViews}, total likes: ${totalLikes}, total comments: ${totalComments}`,
+            html: `<p>You have <strong>${totalViews - previousTotalViews}</strong> new views, <strong>${totalLikes - previousTotalLikes}</strong> new likes, and <strong>${totalComments - previousTotalComments}</strong> new comments.</p>
                    <ul>${penUpdatesText}</ul>
                    <p>Your total views are now: <strong>${totalViews}</strong>, total likes: <strong>${totalLikes}</strong>, total comments: <strong>${totalComments}</strong></p>`,
         };

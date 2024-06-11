@@ -43,10 +43,16 @@ export const performCodePenOperations = async (codepenProfileUsername: string) =
             if (previousPensData) {
                 Logger.info('Sending notification for new interactions');
                 await sendNewCodePenChangedDataNotification(
-                    codepensScrapeData.total_views, previousTotalViews,
-                    codepensScrapeData.total_likes, previousTotalLikes,
-                    codepensScrapeData.total_comments, previousTotalComments,
-                    codepensScrapeData.pens, previousPensData
+                    {
+                        totalViews: codepensScrapeData.total_views,
+                        previousTotalViews,
+                        totalLikes: codepensScrapeData.total_likes,
+                        previousTotalLikes,
+                        totalComments: codepensScrapeData.total_comments,
+                        previousTotalComments,
+                        pensData: codepensScrapeData.pens,
+                        previousPensData
+                    }
                 );
             }
         }
