@@ -28,5 +28,5 @@ jobs:
           RECEIVER_EMAIL: ${{secrets.RECEIVER_EMAIL}}
           CODEPEN_PROFILE: ${{secrets.CODEPEN_PROFILE}}
           PORT: ${{secrets.PORT}}
-        run: npm start  
+        run: npm run perform-codepen-operations  
      
