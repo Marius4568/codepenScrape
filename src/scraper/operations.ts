@@ -159,6 +159,7 @@ export const scrapeUsersCodepensData = async (url: string): Promise<CodepensScra
 
 const expandFirstCodepen = async (page: Page) => {
     try {
+        await page.waitForSelector('.ItemPreviewPopOutButton-module_popupButton-NIvxj', { timeout: 5000 });
         const firstExpandButton = await page.$('.ItemPreviewPopOutButton-module_popupButton-NIvxj');
         if (firstExpandButton) {
             await firstExpandButton.click();
