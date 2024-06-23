@@ -7,7 +7,7 @@
     "test": "jest --config jest.config.cjs",
     "runTestIndexFile": "node dist/functionalityTesting.js",
     "start": "node dist/server.js",
-    "perform-codepen-operations": "node dist/github_actions/performCodepenOperations.js",
+    "perform-codepen-operations": "node dist/github_actions/performCodePenOperations.js",
     "dev": "nodemon --exec ts-node src/server.ts",
     "build": "tsc"
   },
