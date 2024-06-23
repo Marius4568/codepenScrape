@@ -21,6 +21,7 @@ jobs:
         run: ls       
       - name: Build
         run: npm run build
+      - run: pwd
       - run: ls -la dist/github_actions
       - name: run
         env:
