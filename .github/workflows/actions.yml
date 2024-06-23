@@ -20,6 +20,7 @@ jobs:
         run: ls       
       - name: Build
         run: npm run build
+      - run: ls -la dist/github_actions
       - name: run
         env:
           DATABASE_URL: ${{secrets.DATABASE_URL}}
