@@ -104,7 +104,7 @@ const goToNextCodepen = async (page: Page): Promise<boolean> => {
 
 export const scrapeUsersCodepensData = async (url: string): Promise<CodepensScrapeData> => {
     const browser = await puppeteer.launch({
-        headless: false,
+        headless: true,
         executablePath: process.env.NODE_ENV === "production" ? process.env.PUPPETEER_EXECUTABLE_PATH : puppeteer.executablePath(),
         args: ['--no-sandbox', '--disable-setuid-sandbox', "--single-process", '--no-zygote']
     });
