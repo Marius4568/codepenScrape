@@ -1,8 +1,8 @@
 name: Scraper
 on:
   schedule:
-    - cron: '*/5 * * * *'
-    # - cron: "0 */6 * * *"   
+    # - cron: '*/5 * * * *'
+    - cron: "0 */6 * * *"   
 jobs:
   Run_codepen_scrapper:
     runs-on: ubuntu-latest
