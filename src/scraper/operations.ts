@@ -171,7 +171,8 @@ const expandFirstCodepen = async (page: Page) => {
     } catch (error: unknown) {
         if (error instanceof Error) {
             Logger.error(`Error expanding first CodePen: ${error.message}`);
-            Logger.info(`Page Content at error: ${page.content()}`)
+            const pageContent = await page.content();
+            Logger.info(`Page Content at error: ${pageContent}`);
         }
     }
 };
