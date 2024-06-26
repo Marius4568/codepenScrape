@@ -104,7 +104,7 @@ const goToNextCodepen = async (page: Page): Promise<boolean> => {
 
 export const scrapeUsersCodepensData = async (url: string): Promise<CodepensScrapeData> => {
     const browser = await puppeteer.launch({
-        headless: true,
+        headless: false,
         executablePath: process.env.NODE_ENV === "production" ? process.env.PUPPETEER_EXECUTABLE_PATH : puppeteer.executablePath(),
         args: ['--no-sandbox', '--disable-setuid-sandbox', "--single-process", '--no-zygote']
     });
@@ -159,7 +159,7 @@ export const scrapeUsersCodepensData = async (url: string): Promise<CodepensScra
 
 const expandFirstCodepen = async (page: Page) => {
     try {
-        await page.waitForSelector('.ItemPreviewPopOutButton-module_popupButton-NIvxj', { timeout: 15000 });
+        await page.waitForSelector('.ItemPreviewPopOutButton-module_popupButton-NIvxj', { timeout: 5000 });
         const firstExpandButton = await page.$('.ItemPreviewPopOutButton-module_popupButton-NIvxj');
         if (firstExpandButton) {
             await firstExpandButton.click();
