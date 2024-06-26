@@ -159,7 +159,7 @@ export const scrapeUsersCodepensData = async (url: string): Promise<CodepensScra
 
 const expandFirstCodepen = async (page: Page) => {
     try {
-        await page.waitForSelector('.ItemPreviewPopOutButton-module_popupButton-NIvxj', { timeout: 5000 });
+        await page.waitForSelector('.ItemPreviewPopOutButton-module_popupButton-NIvxj', { timeout: 15000 });
         const firstExpandButton = await page.$('.ItemPreviewPopOutButton-module_popupButton-NIvxj');
         if (firstExpandButton) {
             await firstExpandButton.click();
@@ -171,6 +171,7 @@ const expandFirstCodepen = async (page: Page) => {
     } catch (error: unknown) {
         if (error instanceof Error) {
             Logger.error(`Error expanding first CodePen: ${error.message}`);
+            Logger.info(`Page Content at error: ${page.content()}`)
         }
     }
 };
