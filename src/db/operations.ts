@@ -153,7 +153,7 @@ export const fetchUserTotalLikes = async (codepenProfile: string): Promise<numbe
     `;
     const values = [codepenProfile];
     const { rows } = await pool.query(query, values);
-    return rows.length > 0 ? rows[0].total_views : 0;
+    return rows.length > 0 ? rows[0].total_likes : 0;
   } catch (error) {
     Logger.error('Error in fetchUserTotalLikes:', error);
     return undefined;
@@ -171,7 +171,7 @@ export const fetchUserTotalComments = async (codepenProfile: string): Promise<nu
     `;
     const values = [codepenProfile];
     const { rows } = await pool.query(query, values);
-    return rows.length > 0 ? rows[0].total_views : 0;
+    return rows.length > 0 ? rows[0].total_comments : 0;
   } catch (error) {
     Logger.error('Error in fetchUserTotalComments:', error);
     return undefined;

@@ -15,6 +15,7 @@ const extractCodepenData = async (page: Page): Promise<PenData> => {
             return numberMatch ? parseInt(numberMatch[0].replace(/,/g, ''), 10) : 0;
         };
 
+        //TODO: edit this for more accuracy
         // Extract Likes and Views
         const likesAndViewsElements = document.querySelectorAll('h3.itemDetailsStats-module_statTitle-oEV0h');
         let likes = 0;
