@@ -36,6 +36,25 @@ export const performCodePenOperations = async (codepenProfileUsername: string) =
 
         Logger.info(`Have received more interactions: ${haveReceivedMoreInteractions}`);
 
+        // Calculate new interactions for each pen
+        const penInteractions = codepensScrapeData.pens.map(pen => {
+            const previousPenData = previousPensData.find(prevPen => prevPen.codepen_id === pen.codepen_id);
+            const previousPenViews = previousPenData ? previousPenData.views : 0;
+            const previousPenLikes = previousPenData ? previousPenData.likes : 0;
+            const previousPenComments = previousPenData ? previousPenData.comments_count : 0;
+
+            return {
+                codepen_id: pen.codepen_id,
+                title: pen.title,
+                new_views: pen.views - previousPenViews,
+                new_likes: pen.likes - previousPenLikes,
+                new_comments: pen.comments_count - previousPenComments,
+                total_views: pen.views,
+                total_likes: pen.likes,
+                total_comments: pen.comments_count,
+            };
+        }).filter(pen => pen.new_views > 0 || pen.new_likes > 0 || pen.new_comments > 0);
+
         if (haveReceivedMoreInteractions) {
             Logger.info('Updating database with scraped data');
             await updateDBDataWithScrapedData({ profile_username: codepenProfileUsername }, codepensScrapeData);
@@ -50,8 +69,7 @@ export const performCodePenOperations = async (codepenProfileUsername: string) =
                         previousTotalLikes,
                         totalComments: codepensScrapeData.total_comments,
                         previousTotalComments,
-                        pensData: codepensScrapeData.pens,
-                        previousPensData
+                        penInteractions
                     }
                 );
             }
