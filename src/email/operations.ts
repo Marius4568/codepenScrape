@@ -55,6 +55,8 @@ export const sendNewCodePenChangedDataNotification = async ({
         }
     });
 
+    console.log(penInteractions, 'interactions', penUpdatesText, 'updates text')
+
     if (penUpdatesText.length > 0 || previousTotalLikes < totalLikes || previousTotalViews < totalViews || previousTotalComments < totalComments) { // If any pen has new views, likes, or comments
         const emailMessage = {
             to: process.env.RECEIVER_EMAIL,

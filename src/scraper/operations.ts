@@ -25,9 +25,9 @@ const extractCodepenData = async (page: Page): Promise<PenData> => {
             const text = element.textContent || '';
             const number = extractNumberFromText(text);
 
-            if (text.includes('Loves')) {
+            if (text.includes('Love')) {
                 likes = number;
-            } else if (text.includes('Views')) {
+            } else if (text.includes('View')) {
                 views = number;
             }
         });
