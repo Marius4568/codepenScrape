@@ -33,7 +33,7 @@ const extractCodepenData = async (page: Page): Promise<PenData> => {
         });
 
         // Extract Title and codepenID
-        const titleElement = document.querySelector('h1.ItemTitleWithAuthor_title-oP3ro > a');
+        const titleElement = document.querySelector('h1.ItemTitle_title-skUR3 > a');
         const title = titleElement && titleElement?.textContent || 'N/A';
         const href = titleElement ? titleElement.getAttribute('href') : '';
         const codepenIdMatch = href ? href.match(/pen\/([a-zA-Z0-9]+)/) : null;
